@@ -179,6 +179,96 @@ Loaded songs: 18
 ----------------------------------------------------
 ```
 
+### Stress Test — All Profiles (Phase 4)
+
+Six profiles were run to evaluate correctness and expose edge cases.
+
+#### Profile 1 — High-Energy Pop
+```
+                [ HIGH-ENERGY POP ]
+----------------------------------------------------
+  Genre: pop  |  Mood: happy  |  Energy: 0.9  |  Valence: 0.82  |  Acousticness: 0.1
+----------------------------------------------------
+  #1  Sunrise City  -  Neon Echo       Score: 5.62 / 5.75
+  #2  Gym Hero  -  Max Pulse           Score: 4.16 / 5.75
+  #3  Rooftop Lights  -  Indigo Parade Score: 3.48 / 5.75
+  #4  Crown the Moment  -  Verse Capital Score: 2.10 / 5.75
+  #5  Pulse Override  -  Circuit Frenzy Score: 2.04 / 5.75
+```
+> Expected: pop/happy songs first. Correct. Gym Hero (pop, intense) ranks #2 over Rooftop Lights (indie pop, happy) because genre weight (2.0) beats mood weight (1.5).
+
+#### Profile 2 — Chill Lofi
+```
+                   [ CHILL LOFI ]
+----------------------------------------------------
+  Genre: lofi  |  Mood: chill  |  Energy: 0.38  |  Valence: 0.58  |  Acousticness: 0.8
+----------------------------------------------------
+  #1  Library Rain  -  Paper Lanterns   Score: 5.67 / 5.75
+  #2  Midnight Coding  -  LoRoom        Score: 5.65 / 5.75
+  #3  Focus Flow  -  LoRoom             Score: 4.21 / 5.75
+  #4  Spacewalk Thoughts  -  Orbit Bloom Score: 3.54 / 5.75
+  #5  Coffee Shop Stories  -  Slow Stereo Score: 2.10 / 5.75
+```
+> Expected: lofi/chill songs. Correct. #3 is lofi but "focused" not "chill" — costs the 1.5 mood points. #4 is ambient/chill — mood match rescues it above jazz at #5.
+
+#### Profile 3 — Deep Intense Rock
+```
+               [ DEEP INTENSE ROCK ]
+----------------------------------------------------
+  Genre: rock  |  Mood: intense  |  Energy: 0.92  |  Valence: 0.45  |  Acousticness: 0.08
+----------------------------------------------------
+  #1  Storm Runner  -  Voltline         Score: 5.71 / 5.75
+  #2  Gym Hero  -  Max Pulse            Score: 3.48 / 5.75
+  #3  Pulse Override  -  Circuit Frenzy Score: 2.04 / 5.75
+  #4  Iron Cathedral  -  Wrathform      Score: 2.03 / 5.75
+  #5  Night Drive Loop  -  Neon Echo    Score: 1.98 / 5.75
+```
+> Expected: Storm Runner is the only rock/intense song — scores near-perfect 5.71. Large gap to #2 (3.48) confirms genre+mood dominance. Iron Cathedral and Pulse Override compete on energy proximity alone.
+
+#### Profile 4 — Adversarial: High Energy + Melancholic (Conflicting)
+```
+     [ CONFLICTING: HIGH ENERGY + MELANCHOLIC ]
+----------------------------------------------------
+  Genre: metal  |  Mood: melancholic  |  Energy: 0.92  |  Valence: 0.22  |  Acousticness: 0.15
+----------------------------------------------------
+  #1  Iron Cathedral  -  Wrathform      Score: 4.17 / 5.75
+  #2  Wooden Maps  -  Elara Vane        Score: 2.64 / 5.75
+  #3  Storm Runner  -  Voltline         Score: 2.02 / 5.75
+  #4  Night Drive Loop  -  Neon Echo    Score: 1.84 / 5.75
+  #5  Pulse Override  -  Circuit Frenzy Score: 1.83 / 5.75
+```
+> Bias exposed: Iron Cathedral (metal/angry) scores 4.17 on genre match alone — but the user wanted "melancholic", not "angry". Wooden Maps (folk/melancholic) gets #2 via mood match despite being a quiet acoustic track with energy 0.31 vs user target 0.92. The system cannot reconcile conflicting preferences — it rewards each dimension independently.
+
+#### Profile 5 — Adversarial: Unknown Genre (Cold Start)
+```
+           [ UNKNOWN GENRE (COLD START) ]
+----------------------------------------------------
+  Genre: bossa nova  |  Mood: romantic  |  Energy: 0.48  |  Valence: 0.74  |  Acousticness: 0.65
+----------------------------------------------------
+  #1  Velvet Hours  -  Sable June       Score: 3.60 / 5.75
+  #2  Dirt Road Gold  -  The Hazel Band Score: 2.16 / 5.75
+  #3  Harbour Breeze  -  Kofi Andan     Score: 2.15 / 5.75
+  #4  Midnight Coding  -  LoRoom        Score: 2.02 / 5.75
+  #5  Coffee Shop Stories  -  Slow Stereo Score: 2.00 / 5.75
+```
+> Cold start confirmed: "bossa nova" is not in the catalog — genre scores 0 for all 18 songs. Velvet Hours wins via mood match (romantic) + near-perfect energy proximity. #2–#5 are separated by less than 0.16 points, showing the system has very low confidence when forced to rank on numerics alone.
+
+#### Profile 6 — Adversarial: All-Middle / Neutral
+```
+              [ ALL-MIDDLE / NEUTRAL ]
+----------------------------------------------------
+  Genre: jazz  |  Mood: relaxed  |  Energy: 0.5  |  Valence: 0.5  |  Acousticness: 0.5
+----------------------------------------------------
+  #1  Coffee Shop Stories  -  Slow Stereo Score: 5.27 / 5.75
+  #2  Midnight Coding  -  LoRoom          Score: 2.02 / 5.75
+  #3  Velvet Hours  -  Sable June         Score: 2.02 / 5.75
+  #4  Focus Flow  -  LoRoom               Score: 1.94 / 5.75
+  #5  Harbour Breeze  -  Kofi Andan       Score: 1.92 / 5.75
+```
+> #1 dominates (5.27) via genre+mood match on a catalog with only 1 jazz song. #2–#5 cluster tightly (2.02–1.92) — the 0.5 midpoint means all songs score roughly equal on numeric features, leaving catalog order as the practical tiebreaker.
+
+---
+
 ### Running Tests
 
 Run the starter tests with:
