@@ -23,26 +23,26 @@ This system scores every song in the catalog against the user's taste profile us
 
 ### `Song` Features
 
-| Feature | Type | Role in Scoring |
-|---|---|---|
-| `genre` | categorical | Primary taste signal — weighted 30% |
-| `mood` | categorical | Listening context signal — weighted 25% |
-| `energy` | float (0–1) | Proximity to user's target energy — weighted 20% |
-| `valence` | float (0–1) | Emotional tone (happy vs. dark) — weighted 15% |
-| `acousticness` | float (0–1) | Organic vs. electronic texture — weighted 10% |
-| `tempo_bpm` | float (60–152) | Normalized and used as supporting signal |
-| `danceability` | float (0–1) | Supporting signal for rhythm preference |
-| `title`, `artist`, `id` | string/int | Display and identification only |
+| Feature                 | Type           | Role in Scoring                                  |
+| ----------------------- | -------------- | ------------------------------------------------ |
+| `genre`                 | categorical    | Primary taste signal — weighted 30%              |
+| `mood`                  | categorical    | Listening context signal — weighted 25%          |
+| `energy`                | float (0–1)    | Proximity to user's target energy — weighted 20% |
+| `valence`               | float (0–1)    | Emotional tone (happy vs. dark) — weighted 15%   |
+| `acousticness`          | float (0–1)    | Organic vs. electronic texture — weighted 10%    |
+| `tempo_bpm`             | float (60–152) | Normalized and used as supporting signal         |
+| `danceability`          | float (0–1)    | Supporting signal for rhythm preference          |
+| `title`, `artist`, `id` | string/int     | Display and identification only                  |
 
 ### `UserProfile` Fields
 
-| Field | Type | What It Captures |
-|---|---|---|
-| `favorite_genre` | string | Hard preference — matched exactly against song genre |
-| `favorite_mood` | string | Listening context — matched exactly against song mood |
-| `target_energy` | float (0–1) | Desired intensity level — scored by proximity |
-| `target_valence` | float (0–1) | Emotional brightness — scored by proximity |
-| `target_acousticness` | float (0–1) | Texture preference — scored by proximity |
+| Field                 | Type        | What It Captures                                      |
+| --------------------- | ----------- | ----------------------------------------------------- |
+| `favorite_genre`      | string      | Hard preference — matched exactly against song genre  |
+| `favorite_mood`       | string      | Listening context — matched exactly against song mood |
+| `target_energy`       | float (0–1) | Desired intensity level — scored by proximity         |
+| `target_valence`      | float (0–1) | Emotional brightness — scored by proximity            |
+| `target_acousticness` | float (0–1) | Texture preference — scored by proximity              |
 
 ### Data Flow
 
@@ -123,6 +123,8 @@ The full decision process for producing a recommendation:
    source .venv/bin/activate      # Mac or Linux
    .venv\Scripts\activate         # Windows
 
+   ```
+
 2. Install dependencies
 
 ```bash
@@ -137,134 +139,49 @@ python -m src.main
 
 ### Sample Terminal Output
 
-```
-Loaded songs: 18
-
-                  [ USER PROFILE ]                  
-----------------------------------------------------
-  Genre      : pop
-  Mood       : happy
-  Energy     : 0.8
-  Valence    : 0.78
-  Acousticness: 0.2
-----------------------------------------------------
-
-              [ TOP RECOMMENDATIONS ]               
-----------------------------------------------------
-  #1  Sunrise City  -  Neon Echo
-       Genre: pop  |  Mood: happy
-       Score: 5.67 / 5.75
-       Why  : genre match: pop (+2.0) | mood match: happy (+1.5) | energy similarity: 0.98/1.00 | valence similarity: 0.71/0.75 | acousticness similarity: 0.49/0.50
-
-  #2  Gym Hero  -  Max Pulse
-       Genre: pop  |  Mood: intense
-       Score: 4.04 / 5.75
-       Why  : genre match: pop (+2.0) | energy similarity: 0.87/1.00 | valence similarity: 0.74/0.75 | acousticness similarity: 0.42/0.50
-
-  #3  Rooftop Lights  -  Indigo Parade
-       Genre: indie pop  |  Mood: happy
-       Score: 3.61 / 5.75
-       Why  : mood match: happy (+1.5) | energy similarity: 0.96/1.00 | valence similarity: 0.73/0.75 | acousticness similarity: 0.43/0.50
-
-  #4  Crown the Moment  -  Verse Capital
-       Genre: hip-hop  |  Mood: uplifting
-       Score: 2.15 / 5.75
-       Why  : energy similarity: 0.98/1.00 | valence similarity: 0.73/0.75 | acousticness similarity: 0.44/0.50
-
-  #5  Night Drive Loop  -  Neon Echo
-       Genre: synthwave  |  Mood: moody
-       Score: 1.97 / 5.75
-       Why  : energy similarity: 0.95/1.00 | valence similarity: 0.53/0.75 | acousticness similarity: 0.49/0.50
-
-----------------------------------------------------
-```
+![Screenshot - 1](screenshots/image.png)
+![Screenshot - 2](screenshots/image-1.png)
+![Screenshot - 3](screenshots/image-2.png)
+![Screenshot - 4](screenshots/image-3.png)
 
 ### Stress Test — All Profiles (Phase 4)
 
 Six profiles were run to evaluate correctness and expose edge cases.
 
 #### Profile 1 — High-Energy Pop
-```
-                [ HIGH-ENERGY POP ]
-----------------------------------------------------
-  Genre: pop  |  Mood: happy  |  Energy: 0.9  |  Valence: 0.82  |  Acousticness: 0.1
-----------------------------------------------------
-  #1  Sunrise City  -  Neon Echo       Score: 5.62 / 5.75
-  #2  Gym Hero  -  Max Pulse           Score: 4.16 / 5.75
-  #3  Rooftop Lights  -  Indigo Parade Score: 3.48 / 5.75
-  #4  Crown the Moment  -  Verse Capital Score: 2.10 / 5.75
-  #5  Pulse Override  -  Circuit Frenzy Score: 2.04 / 5.75
-```
+
+![High-Energy Pop](screenshots/image-4.png)
+
 > Expected: pop/happy songs first. Correct. Gym Hero (pop, intense) ranks #2 over Rooftop Lights (indie pop, happy) because genre weight (2.0) beats mood weight (1.5).
 
 #### Profile 2 — Chill Lofi
-```
-                   [ CHILL LOFI ]
-----------------------------------------------------
-  Genre: lofi  |  Mood: chill  |  Energy: 0.38  |  Valence: 0.58  |  Acousticness: 0.8
-----------------------------------------------------
-  #1  Library Rain  -  Paper Lanterns   Score: 5.67 / 5.75
-  #2  Midnight Coding  -  LoRoom        Score: 5.65 / 5.75
-  #3  Focus Flow  -  LoRoom             Score: 4.21 / 5.75
-  #4  Spacewalk Thoughts  -  Orbit Bloom Score: 3.54 / 5.75
-  #5  Coffee Shop Stories  -  Slow Stereo Score: 2.10 / 5.75
-```
+
+![Chill Lofi](screenshots/image-5.png)
+
 > Expected: lofi/chill songs. Correct. #3 is lofi but "focused" not "chill" — costs the 1.5 mood points. #4 is ambient/chill — mood match rescues it above jazz at #5.
 
 #### Profile 3 — Deep Intense Rock
-```
-               [ DEEP INTENSE ROCK ]
-----------------------------------------------------
-  Genre: rock  |  Mood: intense  |  Energy: 0.92  |  Valence: 0.45  |  Acousticness: 0.08
-----------------------------------------------------
-  #1  Storm Runner  -  Voltline         Score: 5.71 / 5.75
-  #2  Gym Hero  -  Max Pulse            Score: 3.48 / 5.75
-  #3  Pulse Override  -  Circuit Frenzy Score: 2.04 / 5.75
-  #4  Iron Cathedral  -  Wrathform      Score: 2.03 / 5.75
-  #5  Night Drive Loop  -  Neon Echo    Score: 1.98 / 5.75
-```
+
+![Deep Intense Rock](screenshots/image-6.png)
+
 > Expected: Storm Runner is the only rock/intense song — scores near-perfect 5.71. Large gap to #2 (3.48) confirms genre+mood dominance. Iron Cathedral and Pulse Override compete on energy proximity alone.
 
 #### Profile 4 — Adversarial: High Energy + Melancholic (Conflicting)
-```
-     [ CONFLICTING: HIGH ENERGY + MELANCHOLIC ]
-----------------------------------------------------
-  Genre: metal  |  Mood: melancholic  |  Energy: 0.92  |  Valence: 0.22  |  Acousticness: 0.15
-----------------------------------------------------
-  #1  Iron Cathedral  -  Wrathform      Score: 4.17 / 5.75
-  #2  Wooden Maps  -  Elara Vane        Score: 2.64 / 5.75
-  #3  Storm Runner  -  Voltline         Score: 2.02 / 5.75
-  #4  Night Drive Loop  -  Neon Echo    Score: 1.84 / 5.75
-  #5  Pulse Override  -  Circuit Frenzy Score: 1.83 / 5.75
-```
+
+![High Energy + Melancholic](screenshots/image-7.png)
+
 > Bias exposed: Iron Cathedral (metal/angry) scores 4.17 on genre match alone — but the user wanted "melancholic", not "angry". Wooden Maps (folk/melancholic) gets #2 via mood match despite being a quiet acoustic track with energy 0.31 vs user target 0.92. The system cannot reconcile conflicting preferences — it rewards each dimension independently.
 
 #### Profile 5 — Adversarial: Unknown Genre (Cold Start)
-```
-           [ UNKNOWN GENRE (COLD START) ]
-----------------------------------------------------
-  Genre: bossa nova  |  Mood: romantic  |  Energy: 0.48  |  Valence: 0.74  |  Acousticness: 0.65
-----------------------------------------------------
-  #1  Velvet Hours  -  Sable June       Score: 3.60 / 5.75
-  #2  Dirt Road Gold  -  The Hazel Band Score: 2.16 / 5.75
-  #3  Harbour Breeze  -  Kofi Andan     Score: 2.15 / 5.75
-  #4  Midnight Coding  -  LoRoom        Score: 2.02 / 5.75
-  #5  Coffee Shop Stories  -  Slow Stereo Score: 2.00 / 5.75
-```
+
+![Unknown Genre](screenshots/image-8.png)
+
 > Cold start confirmed: "bossa nova" is not in the catalog — genre scores 0 for all 18 songs. Velvet Hours wins via mood match (romantic) + near-perfect energy proximity. #2–#5 are separated by less than 0.16 points, showing the system has very low confidence when forced to rank on numerics alone.
 
 #### Profile 6 — Adversarial: All-Middle / Neutral
-```
-              [ ALL-MIDDLE / NEUTRAL ]
-----------------------------------------------------
-  Genre: jazz  |  Mood: relaxed  |  Energy: 0.5  |  Valence: 0.5  |  Acousticness: 0.5
-----------------------------------------------------
-  #1  Coffee Shop Stories  -  Slow Stereo Score: 5.27 / 5.75
-  #2  Midnight Coding  -  LoRoom          Score: 2.02 / 5.75
-  #3  Velvet Hours  -  Sable June         Score: 2.02 / 5.75
-  #4  Focus Flow  -  LoRoom               Score: 1.94 / 5.75
-  #5  Harbour Breeze  -  Kofi Andan       Score: 1.92 / 5.75
-```
+
+![All Middle](screenshots/image-9.png)
+
 > #1 dominates (5.27) via genre+mood match on a catalog with only 1 jazz song. #2–#5 cluster tightly (2.02–1.92) — the 0.5 midpoint means all songs score roughly equal on numeric features, leaving catalog order as the practical tiebreaker.
 
 ---
@@ -283,144 +200,23 @@ You can add more tests in `tests/test_recommender.py`.
 
 ## Experiments You Tried
 
-Use this section to document the experiments you ran. For example:
-
-- What happened when you changed the weight on genre from 2.0 to 0.5
-- What happened when you added tempo or valence to the score
-- How did your system behave for different types of users
+- Halved the genre weight (2.0 -> 1.0) and doubled the energy weight (1.0 → 2.0) - Rooftop Lights moved above Gym Hero for the pop/happy user, which felt more accurate since it matched the mood better
+- Ran a "bossa nova" cold start profile where the genre wasn't in the catalog - the top 4 results were within 0.16 points of each other, showing the system loses confidence without a genre match
+- Tested an all-neutral profile with every preference at 0.5 - Coffee Shop Stories dominated purely because it was the only jazz/relaxed song, not because it was the best overall fit
 
 ---
 
 ## Limitations and Risks
 
-Summarize some limitations of your recommender.
-
-Examples:
-
-- It only works on a tiny catalog
-- It does not understand lyrics or language
-- It might over favor one genre or mood
-
-You will go deeper on this in your model card.
+- It works only on 18 songs - results are predictable for most genres since there's just one song per genre
+- Does not understand lyrics or what a song actually sounds like - it only compares numbers
+- Genre matching is all-or-nothing - "indie pop" and "metal" are penalized the same against a "pop" user
+- Cannot detect conflicting preferences - a user wanting high energy and a melancholic mood gets confusing results
 
 ---
 
 ## Reflection
 
-Read and complete `model_card.md`:
-
 [**Model Card**](model_card.md)
 
-Write 1 to 2 paragraphs here about what you learned:
-
-- about how recommenders turn data into predictions
-- about where bias or unfairness could show up in systems like this
-
-
----
-
-## 7. `model_card_template.md`
-
-Combines reflection and model card framing from the Module 3 guidance. :contentReference[oaicite:2]{index=2}  
-
-```markdown
-# 🎧 Model Card - Music Recommender Simulation
-
-## 1. Model Name
-
-Give your recommender a name, for example:
-
-> VibeFinder 1.0
-
----
-
-## 2. Intended Use
-
-- What is this system trying to do
-- Who is it for
-
-Example:
-
-> This model suggests 3 to 5 songs from a small catalog based on a user's preferred genre, mood, and energy level. It is for classroom exploration only, not for real users.
-
----
-
-## 3. How It Works (Short Explanation)
-
-Describe your scoring logic in plain language.
-
-- What features of each song does it consider
-- What information about the user does it use
-- How does it turn those into a number
-
-Try to avoid code in this section, treat it like an explanation to a non programmer.
-
----
-
-## 4. Data
-
-Describe your dataset.
-
-- How many songs are in `data/songs.csv`
-- Did you add or remove any songs
-- What kinds of genres or moods are represented
-- Whose taste does this data mostly reflect
-
----
-
-## 5. Strengths
-
-Where does your recommender work well
-
-You can think about:
-- Situations where the top results "felt right"
-- Particular user profiles it served well
-- Simplicity or transparency benefits
-
----
-
-## 6. Limitations and Bias
-
-Where does your recommender struggle
-
-Some prompts:
-- Does it ignore some genres or moods
-- Does it treat all users as if they have the same taste shape
-- Is it biased toward high energy or one genre by default
-- How could this be unfair if used in a real product
-
----
-
-## 7. Evaluation
-
-How did you check your system
-
-Examples:
-- You tried multiple user profiles and wrote down whether the results matched your expectations
-- You compared your simulation to what a real app like Spotify or YouTube tends to recommend
-- You wrote tests for your scoring logic
-
-You do not need a numeric metric, but if you used one, explain what it measures.
-
----
-
-## 8. Future Work
-
-If you had more time, how would you improve this recommender
-
-Examples:
-
-- Add support for multiple users and "group vibe" recommendations
-- Balance diversity of songs instead of always picking the closest match
-- Use more features, like tempo ranges or lyric themes
-
----
-
-## 9. Personal Reflection
-
-A few sentences about what you learned:
-
-- What surprised you about how your system behaved
-- How did building this change how you think about real music recommenders
-- Where do you think human judgment still matters, even if the model seems "smart"
-
+Building this app made me realize that every recommendation is just math shaped by whoever decided what the numbers should mean. The genre weight being too strong wasn't obvious from reading the code - it only showed up when I tested edge cases. Real apps like Spotify have the same tradeoffs, just with learned weights instead of hand-picked ones.
